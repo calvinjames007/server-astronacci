@@ -14,8 +14,14 @@ class mainController {
                 limit = 10;
             }
 
-            let options = {
-                limit: limit
+            if (limit === 0) {
+                limit = null;
+            }
+
+            let options = {};
+
+            if (limit !== null) {
+                options.limit = limit;
             }
 
             const dataVideo = await Video.findAll(options)

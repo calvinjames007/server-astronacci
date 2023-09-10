@@ -14,6 +14,7 @@ class userController {
         }
     }
 
+    // Manual Login
     static async login(req, res) {
         try {
             const {email, password} = req.body;
@@ -45,8 +46,39 @@ class userController {
             res.json({
                 accessToken,
                 firstName: user.firstName,
-                lastName: user.lastName
+                lastName: user.lastName,
+                status: user.status
             })
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+
+    // Google Login
+    static async loginUsingGoogle (req, res) {
+        try {
+            const client = new OAuth2Client(process.env.GOOGLE_CLIENTID);
+            const ticket = await client.verifyIdToken({
+                idToken: req.headers.google_token,
+                audience: process.env.GOOGLE_CLIENTID,
+            })
+            const payloadGoogle = ticket.getPayload();
+            const [user] = await User.findOrCreate({
+                where: {email: payloadGoogle.email},
+                defaults: {
+                    email: payloadGoogle.email,
+                    firstName: payloadGoogle.name,
+                    lastName: payloadGoogle.name,
+                    password: '1234'
+                },
+                hooks: false
+            })
+            const access_token = signToken({
+                id: user.id,
+                email:user.email
+            })
+            res.jason({access_token})
         }
         catch (error) {
             console.log(error)
